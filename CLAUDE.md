@@ -8,7 +8,7 @@ DNS, Resend, Ansible and GitHub deployment stages. Package-owned code validates
 the flat Vaultwarden configuration and adapts it to ONCE's application shape.
 
 The repository also builds `ghcr.io/getcolors/vaultwarden:1.0.0`, a pinned
-Vaultwarden 1.35.4 image containing Litestream 0.5.5 and Hivemind 1.1.0. ONCE's
+Vaultwarden 1.35.4 image containing Litestream 0.5.16 and Hivemind 1.1.0. ONCE's
 persistent volume is `/storage`. Startup restores SQLite before Vaultwarden;
 Hivemind then runs Vaultwarden, Litestream, the ONCE `/up` proxy and weekly
 restore verification. The admin endpoint is used on loopback only for the first

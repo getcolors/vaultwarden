@@ -4,7 +4,7 @@ A Green Package Skill that provisions a Basecamp ONCE server and deploys
 Vaultwarden with continuous SQLite replication to Cloudflare R2.
 
 The public image `ghcr.io/getcolors/vaultwarden:1.0.0` pins Vaultwarden 1.35.4,
-Litestream 0.5.5, and Hivemind 1.1.0. It uses ONCE's `/storage` volume, restores
+Litestream 0.5.16, and Hivemind 1.1.0. It uses ONCE's `/storage` volume, restores
 before startup, serves ONCE's `/up` health contract, sends the initial owner
 invitation, disables public signup and the admin endpoint, and verifies a real
 replica restore weekly.

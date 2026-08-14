@@ -5,7 +5,11 @@ mkdir -p /storage
 
 # Translate the SMTP variables Basecamp ONCE supplies into Vaultwarden's names.
 export SMTP_HOST="${SMTP_ADDRESS:-}"
-export SMTP_FROM="${MAILER_FROM_ADDRESS:-}"
+smtp_from="${MAILER_FROM_ADDRESS:-}"
+case "$smtp_from" in
+  *'<'*'>') smtp_from=${smtp_from#*<}; smtp_from=${smtp_from%>*} ;;
+esac
+export SMTP_FROM="$smtp_from"
 export SMTP_FROM_NAME="Vaultwarden"
 export SMTP_SECURITY="starttls"
 
