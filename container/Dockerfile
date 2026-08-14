@@ -24,7 +24,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* /tmp/litestream.tar.gz /tmp/hivemind.gz
 
 COPY --from=proxy-build /once-proxy /usr/local/bin/once-proxy
-COPY container/Procfile container/litestream.yml /etc/vaultwarden/
+COPY container/Procfile /Procfile
+COPY container/litestream.yml /etc/vaultwarden/litestream.yml
 COPY container/entrypoint container/bootstrap container/restore-check /usr/local/bin/
 RUN chmod 0755 /usr/local/bin/entrypoint /usr/local/bin/bootstrap /usr/local/bin/restore-check /usr/local/bin/once-proxy
 

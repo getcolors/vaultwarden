@@ -24,4 +24,5 @@ else
   unset ADMIN_TOKEN
 fi
 
-exec hivemind /etc/vaultwarden/Procfile
+cd /
+exec hivemind
