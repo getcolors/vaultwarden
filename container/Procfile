@@ -1,4 +1,5 @@
 vaultwarden: /vaultwarden
 proxy: /usr/local/bin/once-proxy
 litestream: /usr/local/bin/litestream replicate -config /etc/vaultwarden/litestream.yml
+bootstrap: /usr/local/bin/bootstrap
 restore-check: /usr/local/bin/restore-check

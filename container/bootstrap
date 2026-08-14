@@ -1,0 +1,37 @@
+#!/bin/sh
+set -eu
+
+marker=/storage/.owner-invited
+if [ -e "$marker" ]; then
+  while :; do sleep 86400; done
+fi
+
+: "${OWNER_EMAIL:?OWNER_EMAIL is required}"
+: "${VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN:?VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN is required}"
+
+until curl -fsS http://127.0.0.1:8080/alive >/dev/null; do sleep 1; done
+
+while :; do
+  cookie=$(mktemp)
+  if curl -fsS -c "$cookie" \
+      --data-urlencode "token=$VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN" \
+      http://127.0.0.1:8080/admin/ >/dev/null; then
+    code=$(curl -sS -o /tmp/vaultwarden-invite.json -w '%{http_code}' \
+      -b "$cookie" -H 'Content-Type: application/json' \
+      -d "{\"email\":\"$OWNER_EMAIL\"}" \
+      http://127.0.0.1:8080/admin/invite)
+    case "$code" in
+      200|409)
+        rm -f "$cookie" /tmp/vaultwarden-invite.json
+        touch "$marker"
+        echo "bootstrap: owner invitation accepted; restarting without admin endpoint"
+        exit 0
+        ;;
+      *) echo "bootstrap: invitation returned HTTP $code; retrying" >&2 ;;
+    esac
+  else
+    echo "bootstrap: admin login failed; retrying" >&2
+  fi
+  rm -f "$cookie" /tmp/vaultwarden-invite.json
+  sleep 300
+done

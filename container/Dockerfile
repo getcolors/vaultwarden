@@ -25,8 +25,8 @@ RUN apt-get update \
 
 COPY --from=proxy-build /once-proxy /usr/local/bin/once-proxy
 COPY container/Procfile container/litestream.yml /etc/vaultwarden/
-COPY container/entrypoint container/restore-check /usr/local/bin/
-RUN chmod 0755 /usr/local/bin/entrypoint /usr/local/bin/restore-check /usr/local/bin/once-proxy
+COPY container/entrypoint container/bootstrap container/restore-check /usr/local/bin/
+RUN chmod 0755 /usr/local/bin/entrypoint /usr/local/bin/bootstrap /usr/local/bin/restore-check /usr/local/bin/once-proxy
 
 ENV DATA_FOLDER=/storage \
     ROCKET_ADDRESS=127.0.0.1 \

@@ -16,7 +16,7 @@ jobs:
       - run: bb test
       - run: bb golden
       - run: ./scripts/launcher.sh
-      - run: sh -n container/entrypoint container/restore-check
+      - run: sh -n container/entrypoint container/bootstrap container/restore-check
   image:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
