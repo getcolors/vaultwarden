@@ -1,0 +1,4 @@
+vaultwarden: /vaultwarden
+proxy: /usr/local/bin/once-proxy
+litestream: /usr/local/bin/litestream replicate -config /etc/vaultwarden/litestream.yml
+restore-check: /usr/local/bin/restore-check

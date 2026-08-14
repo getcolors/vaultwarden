@@ -1,0 +1,28 @@
+- name: "Reconcile ONCE applications"
+  become: true
+  once:
+    applications:
+      - host: "vault.example.com"
+        image: "ghcr.io/getcolors/vaultwarden:1.0.0"
+        env:
+          - "DOMAIN=https://vault.example.com"
+          - "DATA_FOLDER=/storage"
+          - "ROCKET_ADDRESS=127.0.0.1"
+          - "ROCKET_PORT=8080"
+          - "SIGNUPS_ALLOWED=false"
+          - "OWNER_EMAIL=owner@example.com"
+          - "LITESTREAM_BUCKET=vaultwarden"
+          - "LITESTREAM_ENDPOINT=https://example.r2.cloudflarestorage.com"
+          - "LITESTREAM_REGION=auto"
+          - "LITESTREAM_PREFIX=vault.example.com"
+          - "LITESTREAM_RETENTION=720h"
+          - "LITESTREAM_SNAPSHOT_INTERVAL=24h"
+          - "RESTORE_CHECK_ONCALENDAR=Sun *-*-* 03:00:00"
+          - "LITESTREAM_ACCESS_KEY_ID={{ lookup('env','COLORS_PAR_LITESTREAM_R2_ACCESS_KEY_ID') }}"
+          - "LITESTREAM_SECRET_ACCESS_KEY={{ lookup('env','COLORS_PAR_LITESTREAM_R2_SECRET_ACCESS_KEY') }}"
+          - "VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN={{ lookup('env','COLORS_PAR_VAULTWARDEN_ADMIN_TOKEN') }}"
+        smtp_server: "smtp.example.com"
+        smtp_port: 587
+        smtp_username: "resend"
+        smtp_password: null
+        smtp_from: "Info <info@notifications.example.com>"

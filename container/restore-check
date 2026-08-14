@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+# Verify once shortly after startup, then every Sunday at 03:00 UTC. The
+# desired-state schedule is validated/documented by the package; this image has
+# one supported schedule so there is no second scheduler syntax to maintain.
+sleep 120
+while :; do
+  tmp=$(mktemp /tmp/vaultwarden-restore.XXXXXX)
+  rm -f "$tmp"
+  if litestream restore -config "$LITESTREAM_CONFIG" -o "$tmp" /storage/db.sqlite3 \
+     && [ "$(sqlite3 "$tmp" 'pragma integrity_check;')" = ok ]; then
+    date -u +%FT%TZ > /storage/.last-restore-check
+    echo "restore-check: replica restored and passed SQLite integrity_check"
+  else
+    echo "restore-check: FAILED" >&2
+  fi
+  rm -f "$tmp"
+  now=$(date -u +%s)
+  next=$(date -u -d 'next Sunday 03:00' +%s)
+  sleep $((next - now))
+done

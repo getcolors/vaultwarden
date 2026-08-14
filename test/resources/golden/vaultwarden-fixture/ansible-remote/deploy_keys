@@ -1,0 +1,1 @@
+restrict,command="/usr/local/bin/deploy vault.example.com" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUILDPLACEHOLDER0000000000000000000000 once-deploy-vaultwarden-fixture-getcolors-vaultwarden

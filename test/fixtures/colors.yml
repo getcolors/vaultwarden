@@ -1,0 +1,27 @@
+profile: vaultwarden-fixture
+workdir: .colors
+provider-compute: no-infra
+provider-dns: no-infra
+provider-smtp: no-infra
+provider-backend: local
+compute-prevent-destroy: true
+no-infra-compute-ip: 198.51.100.10
+no-infra-compute-user: root
+no-infra-compute-sudoer: root
+no-infra-compute-uid: 1000
+no-infra-smtp-server: smtp.example.com
+no-infra-smtp-port: 587
+no-infra-smtp-username: resend
+vaultwarden-host: vault.example.com
+vaultwarden-image: ghcr.io/getcolors/vaultwarden:1.0.0
+vaultwarden-repo: getcolors/vaultwarden
+vaultwarden-owner-email: owner@example.com
+vaultwarden-signups-allowed: false
+vaultwarden-admin-enabled: false
+litestream-r2-bucket: vaultwarden
+litestream-r2-endpoint: https://example.r2.cloudflarestorage.com
+litestream-r2-region: auto
+litestream-r2-prefix: vault.example.com
+litestream-retention: 720h
+litestream-snapshot-interval: 24h
+litestream-restore-check-oncalendar: Sun *-*-* 03:00:00

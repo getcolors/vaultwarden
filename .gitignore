@@ -1,0 +1,9 @@
+.*
+!.envrc
+!.github
+!.gitignore
+!.nojekyll
+.clj-kondo/
+.lsp/
+target/
+node_modules/

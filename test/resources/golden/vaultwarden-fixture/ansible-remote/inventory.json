@@ -1,0 +1,17 @@
+{
+  "all" : {
+    "children" : {
+      "admin" : {
+        "hosts" : {
+          "root@198.51.100.10" : {
+            "ansible_host" : "198.51.100.10",
+            "ansible_user" : "root"
+          }
+        }
+      },
+      "users" : {
+        "hosts" : { }
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+#!/bin/sh
+set -eu
+
+mkdir -p /storage
+
+# Translate the SMTP variables Basecamp ONCE supplies into Vaultwarden's names.
+export SMTP_HOST="${SMTP_ADDRESS:-}"
+export SMTP_FROM="${MAILER_FROM_ADDRESS:-}"
+export SMTP_FROM_NAME="Vaultwarden"
+export SMTP_SECURITY="starttls"
+
+# Recover before opening the database. A new deployment with no replica is valid.
+litestream restore -config "$LITESTREAM_CONFIG" \
+  -if-db-not-exists -if-replica-exists /storage/db.sqlite3
+
+# Bootstrap exactly once. The admin endpoint exists only on loopback, before
+# ONCE sees /up as healthy; steady state starts below without ADMIN_TOKEN.
+marker=/storage/.owner-invited
+if [ ! -e "$marker" ]; then
+  : "${OWNER_EMAIL:?OWNER_EMAIL is required}"
+  : "${VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN:?VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN is required}"
+  export ADMIN_TOKEN="$VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN"
+  /vaultwarden &
+  pid=$!
+  trap 'kill "$pid" 2>/dev/null || true' EXIT INT TERM
+  i=0
+  until curl -fsS http://127.0.0.1:8080/alive >/dev/null; do
+    i=$((i + 1))
+    [ "$i" -lt 60 ] || { echo "vaultwarden bootstrap did not become healthy" >&2; exit 1; }
+    sleep 1
+  done
+  cookie=$(mktemp)
+  curl -fsS -c "$cookie" --data-urlencode "token=$VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN" \
+    http://127.0.0.1:8080/admin/ >/dev/null
+  code=$(curl -sS -o /tmp/vaultwarden-invite.json -w '%{http_code}' \
+    -b "$cookie" -H 'Content-Type: application/json' \
+    -d "{\"email\":\"$OWNER_EMAIL\"}" \
+    http://127.0.0.1:8080/admin/invite)
+  rm -f "$cookie" /tmp/vaultwarden-invite.json
+  case "$code" in 200|409) ;; *) echo "owner invitation failed with HTTP $code" >&2; exit 1;; esac
+  kill "$pid"
+  wait "$pid" 2>/dev/null || true
+  trap - EXIT INT TERM
+  touch "$marker"
+fi
+
+unset ADMIN_TOKEN VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN
+cd /etc/vaultwarden
+exec hivemind Procfile
