@@ -29,6 +29,10 @@
   (is (seq (matching (fixture :vaultwarden-image "ghcr.io/getcolors/vaultwarden")
                      "explicit tag"))))
 
+(deftest restore-check-schedule-must-match-the-image
+  (is (seq (matching (fixture :litestream-restore-check-oncalendar "daily")
+                     "one weekly"))))
+
 (deftest profile-overlay-is-refused
   (is (= "COLORS_PAR_PROFILE" validate/profile-par))
   (is (seq (validate/env-errors {"COLORS_PAR_PROFILE" "other"})))

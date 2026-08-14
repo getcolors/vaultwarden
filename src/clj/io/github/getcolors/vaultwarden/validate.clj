@@ -54,7 +54,11 @@
     (for [k [:litestream-retention :litestream-snapshot-interval]
           :when (and (not (placeholder? (get opts k)))
                      (not (re-matches duration-re (str (get opts k)))))]
-      (str k " must be a positive duration such as 24h")))))
+      (str k " must be a positive duration such as 24h"))
+    (when-not (or (placeholder? (:litestream-restore-check-oncalendar opts))
+                  (= "Sun *-*-* 03:00:00"
+                     (str (:litestream-restore-check-oncalendar opts))))
+      [":litestream-restore-check-oncalendar must be Sun *-*-* 03:00:00; the image supports one weekly restore-check schedule"]))))
 
 (defn secret-errors [opts]
   (map #(str "required credential is not set: " (green-cli/par-name %))
