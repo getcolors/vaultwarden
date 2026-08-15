@@ -38,6 +38,16 @@
   (is (= [:vaultwarden/compute :vaultwarden/smtp]
          (vec (rest (workflow/wire-fn :vaultwarden/start {:green/event :create})))))
   (is (= [:vaultwarden/github]
-         (vec (rest (workflow/wire-fn :vaultwarden/start {:green/event :delete})))))
+         (vec (rest (workflow/wire-fn :vaultwarden/start
+                                      (assoc (fixture) :green/event :delete))))))
   (is (= [:vaultwarden/smtp :vaultwarden/compute]
          (vec (rest (workflow/wire-fn :vaultwarden/dns {:green/event :delete}))))))
+
+(deftest official-image-omits-github-from-the-graph
+  (let [opts (dissoc (fixture) :vaultwarden-repo)]
+    (is (= []
+           (vec (rest (workflow/wire-fn :vaultwarden/ansible-remote
+                                        (assoc opts :green/event :create))))))
+    (is (= [:vaultwarden/ansible-cleanup]
+           (vec (rest (workflow/wire-fn :vaultwarden/start
+                                        (assoc opts :green/event :delete))))))))

@@ -41,25 +41,30 @@
   (-> opts once-tools/ansible-local-step once-tools/ansible-remote-step))
 
 (defn wire-fn [step run-opts]
-  (if (= :delete (:green/event run-opts))
-    (case step
-      :vaultwarden/start [start-step :vaultwarden/github]
+  (let [github? (some? (:vaultwarden-repo run-opts))]
+    (if (= :delete (:green/event run-opts))
+      (case step
+        :vaultwarden/start (if github?
+                             [start-step :vaultwarden/github]
+                             [start-step :vaultwarden/ansible-cleanup])
       :vaultwarden/github [once-github/github-step :vaultwarden/ansible-cleanup]
       :vaultwarden/ansible-cleanup [ansible-cleanup-step :vaultwarden/smtp-post]
       :vaultwarden/smtp-post [once-tools/tofu-smtp-post-step :vaultwarden/dns]
       :vaultwarden/dns [once-tools/tofu-dns-step :vaultwarden/smtp :vaultwarden/compute]
       :vaultwarden/smtp [once-tools/tofu-smtp-step]
-      :vaultwarden/compute [once-tools/tofu-compute-step])
-    (case step
-      :vaultwarden/start [start-step :vaultwarden/compute :vaultwarden/smtp]
-      :vaultwarden/compute [once-tools/tofu-compute-step :vaultwarden/dns]
-      :vaultwarden/smtp [once-tools/tofu-smtp-step :vaultwarden/dns]
-      :vaultwarden/dns [once-tools/tofu-dns-step :vaultwarden/smtp-post]
-      :vaultwarden/smtp-post [once-tools/tofu-smtp-post-step
-                              :vaultwarden/ansible-local :vaultwarden/ansible-remote]
-      :vaultwarden/ansible-local [once-tools/ansible-local-step]
-      :vaultwarden/ansible-remote [once-tools/ansible-remote-step :vaultwarden/github]
-      :vaultwarden/github [once-github/github-step])))
+        :vaultwarden/compute [once-tools/tofu-compute-step])
+      (case step
+        :vaultwarden/start [start-step :vaultwarden/compute :vaultwarden/smtp]
+        :vaultwarden/compute [once-tools/tofu-compute-step :vaultwarden/dns]
+        :vaultwarden/smtp [once-tools/tofu-smtp-step :vaultwarden/dns]
+        :vaultwarden/dns [once-tools/tofu-dns-step :vaultwarden/smtp-post]
+        :vaultwarden/smtp-post [once-tools/tofu-smtp-post-step
+                                :vaultwarden/ansible-local :vaultwarden/ansible-remote]
+        :vaultwarden/ansible-local [once-tools/ansible-local-step]
+        :vaultwarden/ansible-remote (if github?
+                                      [once-tools/ansible-remote-step :vaultwarden/github]
+                                      [once-tools/ansible-remote-step])
+        :vaultwarden/github [once-github/github-step]))))
 
 (defn backend-advice [tool]
   (tofu/conventional-backend-advice
