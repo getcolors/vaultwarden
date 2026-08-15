@@ -29,9 +29,9 @@
    (str "VAULTWARDEN_BOOTSTRAP_ADMIN_TOKEN=" (utils/par-lookup :vaultwarden-admin-token))])
 
 (defn with-once-shape [opts]
-  (assoc opts :once
-         {:applications
-          [{:host (:vaultwarden-host opts)
-            :image (:vaultwarden-image opts)
-            :github (:vaultwarden-repo opts)
-            :env (app-env opts)}]}))
+  (let [app (cond-> {:host (:vaultwarden-host opts)
+                     :image (:vaultwarden-image opts)
+                     :env (app-env opts)}
+              (some? (:vaultwarden-repo opts))
+              (assoc :github (:vaultwarden-repo opts)))]
+    (assoc opts :once {:applications [app]})))

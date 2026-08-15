@@ -10,7 +10,10 @@ All keys below are non-secret and belong in `colors.yml`.
 - `compute-prevent-destroy` — keep `true` in committed desired state.
 - `vaultwarden-host` — public FQDN.
 - `vaultwarden-image` — explicit image tag or immutable digest.
-- `vaultwarden-repo` — `owner/repo` receiving the ONCE deploy key.
+- `vaultwarden-repo` — optional `owner/repo` receiving ONCE deployment
+  credentials. Omit it when consuming the official
+  `ghcr.io/getcolors/vaultwarden` image. A custom image requires a repository
+  the operator controls and `COLORS_PAR_GITHUB_TOKEN` with access to it.
 - `vaultwarden-owner-email` — initial invitation recipient.
 - `vaultwarden-signups-allowed` — must be `false`.
 - `vaultwarden-admin-enabled` — must be `false` in converged state.

@@ -22,6 +22,13 @@
     (is (= 2 (:green/exit result)))
     (is (str/includes? (:green/err result) "COLORS_PAR_NO_INFRA_SMTP_PASSWORD"))))
 
+(deftest official-image-needs-no-github-credential
+  (let [env (assoc package-secrets "COLORS_PAR_NO_INFRA_SMTP_PASSWORD" "x")
+        opts (assoc (dissoc (fixture) :vaultwarden-repo) :green/event :create)
+        result (workflow/start-step opts env)]
+    (is (= 0 (:green/exit result)))
+    (is (not (str/includes? (str (:green/err result)) "COLORS_PAR_GITHUB_TOKEN")))))
+
 (deftest delete-is-protected
   (let [result (workflow/start-step (assoc (fixture) :green/event :delete) {})]
     (is (= 2 (:green/exit result)))

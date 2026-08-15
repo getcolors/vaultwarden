@@ -4,7 +4,7 @@
 
 `vaultwarden` is a Green-only Package Skill for one Vaultwarden application on
 a single Basecamp ONCE server. It deliberately reuses ONCE's complete compute,
-DNS, Resend, Ansible and GitHub deployment stages. Package-owned code validates
+DNS, Resend and Ansible stages, plus optional GitHub deployment credentials. Package-owned code validates
 the flat Vaultwarden configuration and adapts it to ONCE's application shape.
 
 The repository also builds `ghcr.io/getcolors/vaultwarden:1.0.0`, a pinned
@@ -37,7 +37,7 @@ must use pushed SHAs managed by `bb pin`. A deployment's root launcher is a copy
 of `skills/package-vaultwarden-green/green`, not a symlink.
 
 The ONCE reuse surface includes its workflow start behavior, provider registry,
-all four OpenTofu stages, both Ansible stages, GitHub deploy-key publication and
+all four OpenTofu stages, both Ansible stages, optional GitHub credential publication and
 the stage directory/state names. `bb golden` protects this coupling. Inspect
 diffs before `bb golden:accept`.
 

@@ -29,6 +29,13 @@
   (is (seq (matching (fixture :vaultwarden-image "ghcr.io/getcolors/vaultwarden")
                      "explicit tag"))))
 
+(deftest repository-is-optional-only-for-the-official-image
+  (is (= [] (validate/state-errors (dissoc (fixture) :vaultwarden-repo))))
+  (is (seq (matching (dissoc (fixture :vaultwarden-image "ghcr.io/acme/vaultwarden:1.0.0")
+                             :vaultwarden-repo)
+                     "repo is required")))
+  (is (= [] (matching (fixture :vaultwarden-repo "acme/vaultwarden") "repo"))))
+
 (deftest restore-check-schedule-must-match-the-image
   (is (seq (matching (fixture :litestream-restore-check-oncalendar "daily")
                      "one weekly"))))

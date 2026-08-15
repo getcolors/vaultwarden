@@ -17,5 +17,11 @@
     (is (str/includes? env "COLORS_PAR_VAULTWARDEN_ADMIN_TOKEN"))
     (is (not (str/includes? env "secret-value")))))
 
+(deftest adapter-omits-github-for-the-public-image
+  (let [app (get-in (tools/with-once-shape (dissoc (fixture) :vaultwarden-repo))
+                    [:once :applications 0])]
+    (is (= "ghcr.io/getcolors/vaultwarden:1.0.0" (:image app)))
+    (is (not (contains? app :github)))))
+
 (deftest once-storage-path-is-fixed
   (is (some #{"DATA_FOLDER=/storage"} (tools/app-env (fixture)))))

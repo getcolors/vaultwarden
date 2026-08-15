@@ -8,8 +8,10 @@ license: MIT
 
 Operate one Vaultwarden deployment from non-secret `colors.yml`. The package
 reuses ONCE for compute, Cloudflare DNS, Resend, host convergence, HTTPS and
-GitHub deploy keys. Its custom image runs Vaultwarden and Litestream under
-Hivemind and satisfies ONCE's `/up` health contract.
+optional GitHub deploy credentials. Its custom image runs Vaultwarden and
+Litestream under Hivemind and satisfies ONCE's `/up` health contract. The
+official `ghcr.io/getcolors/vaultwarden` image needs no repository or GitHub
+token; set `vaultwarden-repo` only for a repository the operator controls.
 
 ## Safety
 

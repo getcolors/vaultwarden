@@ -9,6 +9,11 @@ before startup, serves ONCE's `/up` health contract, sends the initial owner
 invitation, disables public signup and the admin endpoint, and verifies a real
 replica restore weekly.
 
+The official public image needs no GitHub access. Omit `vaultwarden-repo` to
+consume it directly. Set `vaultwarden-repo` only when a repository you control
+should receive ONCE deployment credentials; custom images require that explicit
+repository.
+
 ```sh
 npx skills add getcolors/vaultwarden
 cp .agents/skills/package-vaultwarden-green/green ./green

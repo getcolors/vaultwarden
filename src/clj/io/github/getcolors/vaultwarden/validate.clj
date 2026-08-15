@@ -4,7 +4,7 @@
             [green.providers :as provider-ops]))
 
 (def own-required
-  [:vaultwarden-host :vaultwarden-image :vaultwarden-repo
+  [:vaultwarden-host :vaultwarden-image
    :vaultwarden-owner-email :vaultwarden-signups-allowed
    :vaultwarden-admin-enabled
    :litestream-r2-bucket :litestream-r2-endpoint :litestream-r2-region
@@ -18,6 +18,7 @@
 (def profile-par (green-cli/par-name :profile))
 (def host-re #"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$")
 (def repo-re #"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$")
+(def official-image-re #"^ghcr\.io/getcolors/vaultwarden(?::[^@\s]+|@sha256:[0-9a-fA-F]{64})$")
 (def email-re #"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 (def duration-re #"^[1-9][0-9]*(?:ms|s|m|h)$")
 
@@ -36,8 +37,11 @@
     (when-not (or (placeholder? (:vaultwarden-host opts))
                   (re-matches host-re (str (:vaultwarden-host opts))))
       [":vaultwarden-host must be a fully qualified hostname"])
-    (when-not (or (placeholder? (:vaultwarden-repo opts))
-                  (re-matches repo-re (str (:vaultwarden-repo opts))))
+    (when (and (placeholder? (:vaultwarden-repo opts))
+               (not (re-matches official-image-re (str (:vaultwarden-image opts)))))
+      [":vaultwarden-repo is required unless :vaultwarden-image uses ghcr.io/getcolors/vaultwarden with an explicit tag or digest"])
+    (when (and (not (placeholder? (:vaultwarden-repo opts)))
+               (not (re-matches repo-re (str (:vaultwarden-repo opts)))))
       [":vaultwarden-repo must be owner/name"])
     (when-not (or (placeholder? (:vaultwarden-owner-email opts))
                   (re-matches email-re (str (:vaultwarden-owner-email opts))))

@@ -14,7 +14,6 @@ no-infra-smtp-port: 587
 no-infra-smtp-username: resend
 vaultwarden-host: vault.example.com
 vaultwarden-image: ghcr.io/getcolors/vaultwarden:1.0.0
-vaultwarden-repo: getcolors/vaultwarden
 vaultwarden-owner-email: owner@example.com
 vaultwarden-signups-allowed: false
 vaultwarden-admin-enabled: false
