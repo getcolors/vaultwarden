@@ -1,26 +1,21 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = []
+# dependencies = ["package-vaultwarden-blue", "blue", "package-once-blue"]
+#
+# [tool.uv.sources]
+# package-vaultwarden-blue = { git = "https://github.com/getcolors/vaultwarden.git", rev = "d8bf1ad97979b62518da72a891dbb8eef93cc658", subdirectory = "blue" }
+# blue = { git = "https://github.com/getcolors/blue.git", rev = "290f313ead5ca162875c33a049c880da017eae09" }
+# package-once-blue = { git = "https://github.com/getcolors/once.git", subdirectory = "blue", rev = "69527114b8bd1ead0b92dc1b08e6bf9a446c341a" }
+#
+# [tool.uv]
+# override-dependencies = ["blue @ git+https://github.com/getcolors/blue.git@290f313ead5ca162875c33a049c880da017eae09"]
 # ///
 #
 # Managed by `bb pin` — do not edit by hand, and never invent a SHA.
 #
-# UNPINNED: this repository has not been pushed and stamped, so the inline
-# metadata above deliberately carries no package-vaultwarden-blue git source. A
-# launcher that cannot resolve its own library says so rather than inventing a
-# SHA or silently falling back to whatever is lying around; `bb pin` refuses to
-# stamp a dirty or unpushed HEAD for the same reason. Once stamped, the block
-# above reads:
-#
-#   # dependencies = ["package-vaultwarden-blue", "blue", "package-once-blue"]
-#   #
-#   # [tool.uv.sources]
-#   # package-vaultwarden-blue = { git = "https://github.com/getcolors/vaultwarden.git", rev = "<sha stamped by bb pin>", subdirectory = "blue" }
-#   # blue = { git = "https://github.com/getcolors/blue.git", rev = "290f313ead5ca162875c33a049c880da017eae09" }
-#   # package-once-blue = { git = "https://github.com/getcolors/once.git", subdirectory = "blue", rev = "69527114b8bd1ead0b92dc1b08e6bf9a446c341a" }
-#
-# Point it at a checkout meanwhile: VAULTWARDEN_LIB_ROOT=/path/to/vaultwarden
+# Stamped by `bb pin`. VAULTWARDEN_LIB_ROOT=/path/to/vaultwarden still overrides the
+# pin with a working tree.
 """Thin launcher for package-vaultwarden-blue.
 
 This file is both the skill payload and the repository entry point —
