@@ -1,7 +1,9 @@
 # vaultwarden
 
-A Green Package Skill that provisions a Basecamp ONCE server and deploys
-Vaultwarden with continuous SQLite replication to Cloudflare R2.
+A tri-colour Package Skill — green (Clojure), red (TypeScript), and blue
+(Python) — that provisions a Basecamp ONCE server and deploys Vaultwarden with
+continuous SQLite replication to Cloudflare R2. Green is canonical; the three
+implementations render byte-identical artifacts.
 
 The public image `ghcr.io/getcolors/vaultwarden:1.0.0` pins Vaultwarden 1.35.4,
 Litestream 0.5.16, and Hivemind 1.1.0. It uses ONCE's `/storage` volume, restores
@@ -21,6 +23,9 @@ cp .agents/skills/package-vaultwarden-green/green ./green
 ./green create --dry-run
 ./green create
 ```
+
+The red and blue skills (`package-vaultwarden-red`, `package-vaultwarden-blue`)
+install the same way and run the same verbs through `./red` and `./blue`.
 
 Desired state is `colors.yml`; credentials are `COLORS_PAR_*` values sourced
 from a gitignored `.envrc.private`. Never set `COLORS_PAR_PROFILE`.
@@ -42,7 +47,9 @@ successful timestamp in `/storage/.last-restore-check`.
 ## Development
 
 ```sh
-bb test
-bb golden
+cd green && bb test && bb golden
+cd red && bun test && bun run typecheck
+cd blue && uv run pytest
+./scripts/parity.sh
 ./scripts/launcher.sh
 ```

@@ -14,7 +14,9 @@ jobs:
         with:
           bb: latest
       - run: bb test
+        working-directory: green
       - run: bb golden
+        working-directory: green
       - run: ./scripts/launcher.sh
       - run: sh -n container/entrypoint container/bootstrap container/restore-check
   image:

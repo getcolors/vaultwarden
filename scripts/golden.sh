@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+# Green's regression net against the committed golden: render the one fixture
+# and diff against committed output. scripts/parity.sh is the net across
+# colours.
+#
+#   ./scripts/golden.sh            check
+#   ./scripts/golden.sh --accept   regenerate after an intended change
+
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-VAULTWARDEN_LIB_ROOT="$root" COLORS_PAR_WORKDIR="$tmp/work" \
-  "$root/green" build -f "$root/test/fixtures/colors.yml" >/dev/null
+(cd "$root/green" && VAULTWARDEN_LIB_ROOT="$root" COLORS_PAR_WORKDIR="$tmp/work" \
+  ./green build -f "$root/test/fixtures/colors.yml" >/dev/null)
 actual="$tmp/work/vaultwarden-fixture"
 golden="$root/test/resources/golden/vaultwarden-fixture"
 if grep -rEq 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|github_pat_|ghp_' "$actual"; then

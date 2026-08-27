@@ -14,8 +14,8 @@
 ;; they carry ONCE's stage names and the profile is the ONLY thing separating
 ;; this project's state from a once-colors' in the same bucket.
 ;;
-;; This file is both the skill payload and the repository entry point — ./green
-;; in the project root is a symlink to it. It deliberately holds no logic of its
+;; This file is both the skill payload and the repository entry point — green/green
+;; in the repository is a symlink to it. It deliberately holds no logic of its
 ;; own: validation, the graph and the steps all live in the `vaultwarden` library,
 ;; where the test suite reaches them. A copied payload is the one place in this
 ;; project where code cannot be tested, so nothing that can live elsewhere
@@ -53,7 +53,7 @@
 ;; cannot resolve its own library says so rather than inventing a SHA or
 ;; silently falling back to whatever is lying around. `bb pin` refuses to stamp
 ;; a dirty or unpushed HEAD for the same reason.
-(def ^:private vaultwarden-sha "6706b0b96fd9e7a03f110a5266d6f9a8147b5bc4")
+(def ^:private vaultwarden-sha nil)
 
 (def ^:private vaultwarden-git-url "https://github.com/getcolors/vaultwarden.git")
 (def ^:private once-git-url "https://github.com/getcolors/once.git")
@@ -62,7 +62,7 @@
 (defn- lib-coord
   [env-var url sha deps-root]
   (if-let [root (System/getenv env-var)]
-    {:local/root root}
+    {:local/root (if deps-root (str (io/file root deps-root)) root)}
     (when sha
       (cond-> {:git/url url :git/sha sha}
         deps-root (assoc :deps/root deps-root)))))
@@ -72,7 +72,7 @@
 
 (def ^:private bootstrap-error
   (when (and (System/getProperty "babashka.version") (not resolved?))
-    (let [vaultwarden (lib-coord "VAULTWARDEN_LIB_ROOT" vaultwarden-git-url vaultwarden-sha nil)
+    (let [vaultwarden (lib-coord "VAULTWARDEN_LIB_ROOT" vaultwarden-git-url vaultwarden-sha "green")
           once (lib-coord "ONCE_LIB_ROOT" once-git-url nil "green")
           green (lib-coord "GREEN_LIB_ROOT" green-git-url nil nil)]
       (if-not vaultwarden
