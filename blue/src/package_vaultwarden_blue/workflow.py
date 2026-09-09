@@ -67,7 +67,8 @@ async def start_step(original: dict, env: dict[str, str] | None = None) -> dict:
 
 
 async def ansible_cleanup_step(opts: dict) -> dict:
-    return await once_tools.ansible_remote_step(await tools.ansible_local_step(opts))
+    result = await tools.ansible_local_step(opts)
+    return result if failed(result) else await once_tools.ansible_remote_step(result)
 
 
 def wire_fn(step: str, run_opts: dict):

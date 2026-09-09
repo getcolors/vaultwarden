@@ -17,3 +17,12 @@ for(const retired of [true,false])for(const failure of [true,false])test(`native
  if(retired||failure)expect(seen).toEqual(['vaultwarden/start']);else expect(seen.slice(-3)).toEqual(['vaultwarden/dns','vaultwarden/smtp','vaultwarden/compute']);
  expect(result['red/exit']).toBe(failure?1:0);
 });
+
+import * as tools from '../src/tools.ts';
+import {tools as onceTools} from 'package-once-red';
+import {ansibleCleanupStep} from '../src/workflow.ts';
+test('local cleanup failure prevents remote cleanup',async()=>{
+ const local=spyOn(tools,'ansibleLocalStep').mockResolvedValue({'red/exit':1});
+ const remote=spyOn(onceTools,'ansibleRemoteStep').mockImplementation(async()=>{throw Error('forbidden remote');});
+ try{expect((await ansibleCleanupStep({'red/event':'delete'}))['red/exit']).toBe(1);expect(remote).not.toHaveBeenCalled();}finally{local.mockRestore();remote.mockRestore();}
+});

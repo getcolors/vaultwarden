@@ -73,7 +73,8 @@ export async function startStep(original: Opts, env: Record<string, string | und
 }
 
 export async function ansibleCleanupStep(opts: Opts): Promise<Opts> {
-  return onceTools.ansibleRemoteStep(await tools.ansibleLocalStep(opts));
+  const result = await tools.ansibleLocalStep(opts);
+  return failed(result) ? result : onceTools.ansibleRemoteStep(result);
 }
 
 export function nextFn(step:string, successors:string[]|null, opts:Opts):[string,Opts][] {return failed(opts)||(step==='vaultwarden/start'&&opts['red/event']==='delete'&&opts['colors-compute/already-destroyed'])?[]:(successors??[]).map(s=>[s,opts]);}

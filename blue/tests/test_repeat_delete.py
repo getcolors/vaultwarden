@@ -35,3 +35,11 @@ async def test_retired_inventory_skips_smtp_state_read(monkeypatch):
     monkeypatch.setattr(workflow,'_state_output',forbidden)
     result=await workflow._adopt_existing_state({'blue/event':'delete'})
     assert result['colors-compute/already-destroyed'] is True
+
+async def test_local_cleanup_failure_never_reaches_remote(monkeypatch):
+    async def failure(opts):return {**opts,'blue/exit':1}
+    async def forbidden(*args):pytest.fail('remote cleanup must not follow failed alias cleanup')
+    monkeypatch.setattr(workflow.tools,'ansible_local_step',failure)
+    monkeypatch.setattr(workflow.once_tools,'ansible_remote_step',forbidden)
+    result=await workflow.ansible_cleanup_step({'blue/event':'delete'})
+    assert result['blue/exit']==1

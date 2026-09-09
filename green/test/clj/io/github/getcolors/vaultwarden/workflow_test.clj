@@ -108,3 +108,10 @@
         (is (= [:vaultwarden/start] @seen))
         (is (= [:vaultwarden/dns :vaultwarden/smtp :vaultwarden/compute] (take-last 3 @seen))))
       (is (= (if failure 1 0) (:green/exit result))))))
+
+(deftest local-cleanup-failure-prevents-remote-cleanup
+ (require '[io.github.getcolors.vaultwarden.tools :as local-tools]
+          '[io.github.getcolors.once.tools :as remote-tools])
+ (with-redefs-fn {(resolve 'local-tools/ansible-local-step) (fn [opts] (assoc opts :green/exit 1))
+                  (resolve 'remote-tools/ansible-remote-step) (fn [_] (throw (ex-info "forbidden remote" {})))}
+   #(is (= 1 (:green/exit (workflow/ansible-cleanup-step {:green/event :delete}))))))

@@ -77,7 +77,8 @@
     env)))
 
 (defn ansible-cleanup-step [opts]
-  (-> opts tools/ansible-local-step once-tools/ansible-remote-step))
+  (let [result (tools/ansible-local-step opts)]
+    (if (wf/failed? result) result (once-tools/ansible-remote-step result))))
 
 (defn wire-fn [step run-opts]
   (let [github? (some? (:vaultwarden-repo run-opts))]
