@@ -4,22 +4,9 @@ version = "0.1.0"
 description = "Blue/Python implementation of the Vaultwarden package"
 requires-python = ">=3.11"
 dependencies = [
-    "blue",
-    "package-once-blue",
-]
-
-[tool.uv.sources]
-blue = { git = "https://github.com/getcolors/blue.git", rev = "290f313ead5ca162875c33a049c880da017eae09" }
-package-once-blue = { git = "https://github.com/getcolors/once.git", subdirectory = "blue", rev = "69527114b8bd1ead0b92dc1b08e6bf9a446c341a" }
-
-# The ONCE pin above carries its own, older blue pin
-# (369c5aafea790a03b649b3513003651e672f3f57); without this override the two git
-# URLs conflict and uv refuses to resolve. The override makes this package's
-# blue pin the one that wins, the way tools.deps lets the top-level green pin
-# win in green/deps.edn.
-[tool.uv]
-override-dependencies = [
     "blue @ git+https://github.com/getcolors/blue.git@290f313ead5ca162875c33a049c880da017eae09",
+    "package-once-blue @ git+https://github.com/getcolors/once.git@a1fe1be7a427dd2e406ff7befd1c43a53e7c3618#subdirectory=blue",
+    "colors-compute-blue @ git+https://github.com/getcolors/colors-compute.git@422c3f39d22be93efa703da09eb192490942ede3#subdirectory=blue",
 ]
 
 [dependency-groups]

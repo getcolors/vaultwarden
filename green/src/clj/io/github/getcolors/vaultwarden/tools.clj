@@ -1,5 +1,8 @@
 (ns io.github.getcolors.vaultwarden.tools
-  (:require [io.github.getcolors.once.tools :as once-tools]
+  (:require [clojure.java.io :as io]
+            [green.ansible :as ansible]
+            [green.scaffold :as sc]
+            [io.github.getcolors.once.tools :as once-tools]
             [io.github.getcolors.vaultwarden.utils :as utils]))
 
 (def compute-tool "tofu-compute")
@@ -35,3 +38,19 @@
               (some? (:vaultwarden-repo opts))
               (assoc :github (:vaultwarden-repo opts)))]
     (assoc opts :once {:applications [app]})))
+
+
+(defn ansible-local-step [opts]
+  (let [dir (tool-dir opts "ansible-local")
+        data (merge opts (:once/compute-params opts))
+        specs (mapv (fn [name]
+                      {:template (keyword "io.github.getcolors.vaultwarden.tools.ansible-local" name)
+                       :target (str dir "/" name) :data data :opts sc/preserve-jinja-delimiters})
+                    ["ansible.cfg" "inventory.ini" "main.yml"])]
+    (ansible/ansible-with-spec opts
+      {:dir dir :inventory "inventory.ini" :playbooks {:create "main.yml" :delete "main.yml"}
+       :extra-vars {:host_alias (:profile data)
+                    :ssh_hosts [{:name (:profile data) :ip (:ip data) :user (:user data)
+                                 :identity_file (:ssh-private-key-path data)}]
+                    :block_state (if (= :delete (:green/event opts)) "absent" "present")}}
+      specs)))

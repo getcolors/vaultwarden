@@ -6,6 +6,9 @@ import re
 
 from blue.cli import par_name
 from blue.providers import placeholder
+from colors_compute import credential_requirements
+from package_once_blue.validate import providers
+from . import machine
 
 OWN_REQUIRED = [
     "vaultwarden-host", "vaultwarden-image",
@@ -75,3 +78,24 @@ def state_errors(opts: dict) -> list[str]:
 def secret_errors(opts: dict) -> list[str]:
     return [f"required credential is not set: {par_name(key)}"
             for key in OWN_SECRETS if placeholder(opts.get(key))]
+
+
+def integration_errors(opts):
+    errors = machine.errors(opts)
+    for slot in ['provider-smtp', 'provider-dns']:
+        entry = providers[slot].get(opts.get(slot))
+        if entry is None:
+            errors.append('unsupported ' + slot)
+        else:
+            errors.extend(':' + key + ' is required' for key in entry['required'] if placeholder(opts.get(key)))
+    return errors
+
+
+def credential_errors(opts):
+    variables = set(credential_requirements(opts))
+    for slot in ['provider-smtp', 'provider-dns']:
+        variables.update(par_name(key) for key in providers[slot].get(opts.get(slot), {}).get('secrets', []))
+    if opts.get('vaultwarden-repo') is not None:
+        variables.add('COLORS_PAR_GITHUB_TOKEN')
+    return ['required credential is not set: ' + variable for variable in sorted(variables)
+            if placeholder(opts.get(variable.removeprefix('COLORS_PAR_').lower().replace('_', '-')))]

@@ -19,19 +19,8 @@
 
 (def blue-unpinned-meta "# dependencies = []\n# ///")
 (defn blue-pinned-meta [sha]
-  (str "# dependencies = [\"package-vaultwarden-blue\", \"blue\", \"package-once-blue\"]\n"
-       "#\n"
-       "# [tool.uv.sources]\n"
-       "# package-vaultwarden-blue = { git = \"https://github.com/getcolors/vaultwarden.git\", rev = \"" sha "\", subdirectory = \"blue\" }\n"
-       "# blue = { git = \"https://github.com/getcolors/blue.git\", rev = \"290f313ead5ca162875c33a049c880da017eae09\" }\n"
-       "# package-once-blue = { git = \"https://github.com/getcolors/once.git\", subdirectory = \"blue\", rev = \"69527114b8bd1ead0b92dc1b08e6bf9a446c341a\" }\n"
-       "#\n"
-       ;; package-once-blue at 6952711 carries its own, older blue pin
-       ;; (369c5aafea790a03b649b3513003651e672f3f57); the override makes this
-       ;; package's blue pin win, as it does in blue/pyproject.toml.
-       "# [tool.uv]\n"
-       "# override-dependencies = [\"blue @ git+https://github.com/getcolors/blue.git@290f313ead5ca162875c33a049c880da017eae09\"]\n"
-       "# ///"))
+  (str "# dependencies = [\"package-vaultwarden-blue\"]\n#\n# [tool.uv.sources]\n"
+       "# package-vaultwarden-blue = { git = \"https://github.com/getcolors/vaultwarden.git\", rev = \"" sha "\", subdirectory = \"blue\" }\n# ///"))
 (defn stamp-blue [s sha]
   ;; First stamp is structural: the metadata block gains its git sources and the
   ;; UNPINNED paragraph collapses to a pinned-state note. Re-pinning is a SHA swap.

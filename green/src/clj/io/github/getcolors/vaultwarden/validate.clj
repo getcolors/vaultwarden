@@ -1,5 +1,7 @@
 (ns io.github.getcolors.vaultwarden.validate
-  (:require [clojure.string :as str]
+  (:require [io.github.getcolors.compute :as compute]
+            [io.github.getcolors.once.validate :as once-validate]
+            [io.github.getcolors.vaultwarden.machine :as machine] [clojure.string :as str]
             [green.cli :as green-cli]
             [green.providers :as provider-ops]))
 
@@ -67,3 +69,19 @@
 (defn secret-errors [opts]
   (map #(str "required credential is not set: " (green-cli/par-name %))
        (filter #(placeholder? (get opts %)) own-secrets)))
+
+(defn integration-errors [opts]
+  (into (vec (machine/errors opts))
+        (mapcat (fn [slot]
+                  (if-let [entry (get-in once-validate/providers [slot (get opts slot)])]
+                    (for [key (:required entry) :when (once-validate/placeholder? (get opts key))] (str key " is required"))
+                    [(str "unsupported " (name slot))]))
+                [:provider-smtp :provider-dns])))
+(defn credential-errors [opts]
+  (let [variables (into (set (compute/credential-requirements opts))
+                        (concat (map green-cli/par-name (mapcat #(get-in once-validate/providers [% (get opts %) :secrets]) [:provider-smtp :provider-dns]))
+                                (when (:vaultwarden-repo opts) ["COLORS_PAR_GITHUB_TOKEN"])))]
+    (vec (for [variable (sort variables)
+               :let [key (keyword (clojure.string/replace (clojure.string/lower-case (subs variable 11)) "_" "-"))]
+               :when (once-validate/placeholder? (get opts key))]
+           (str "required credential is not set: " variable)))))

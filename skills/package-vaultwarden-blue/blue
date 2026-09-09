@@ -1,15 +1,10 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["package-vaultwarden-blue", "blue", "package-once-blue"]
+# dependencies = ["package-vaultwarden-blue"]
 #
 # [tool.uv.sources]
 # package-vaultwarden-blue = { git = "https://github.com/getcolors/vaultwarden.git", rev = "d8bf1ad97979b62518da72a891dbb8eef93cc658", subdirectory = "blue" }
-# blue = { git = "https://github.com/getcolors/blue.git", rev = "290f313ead5ca162875c33a049c880da017eae09" }
-# package-once-blue = { git = "https://github.com/getcolors/once.git", subdirectory = "blue", rev = "69527114b8bd1ead0b92dc1b08e6bf9a446c341a" }
-#
-# [tool.uv]
-# override-dependencies = ["blue @ git+https://github.com/getcolors/blue.git@290f313ead5ca162875c33a049c880da017eae09"]
 # ///
 #
 # Managed by `bb pin` — do not edit by hand, and never invent a SHA.

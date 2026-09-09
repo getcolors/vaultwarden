@@ -7,7 +7,8 @@ license: MIT
 # Vaultwarden with Green
 
 Operate one Vaultwarden deployment from non-secret `colors.yml`. The package
-reuses ONCE for compute, Cloudflare DNS, Resend, host convergence, HTTPS and
+calls colors-compute directly for the host and remote state. It reuses ONCE for
+Cloudflare DNS, Resend, host convergence, HTTPS and
 optional GitHub deploy credentials. Its custom image runs Vaultwarden and
 Litestream under Hivemind and satisfies ONCE's `/up` health contract. The
 official `ghcr.io/getcolors/vaultwarden` image needs no repository or GitHub
@@ -46,3 +47,17 @@ When `/storage/db.sqlite3` is absent, startup restores the newest R2 replica
 before Vaultwarden starts. For non-destructive verification, restore to a
 separate file and run SQLite `pragma integrity_check`; never restore over a live
 database. The image performs this isolated check weekly.
+
+## Compute and SSH
+
+Use `provider-compute` with azure, aws, google, digitalocean, hcloud, vultr,
+yandex, or oci. The library owns provider validation, resources, state and keys.
+Set `compute-ssh-sources` and `compute-http-sources` explicitly. State uses R2
+or S3. Compute `no-infra` and local state are unsupported.
+
+The default keypair is managed at `~/.ssh/<profile>`. Explicit provider key
+references select external ownership. The SSH alias is exactly the profile,
+with the recorded address and login. External mode adds no IdentityFile or
+IdentitiesOnly directive. An explicit `ssh-private-key-path` still reaches
+Ansible. Delete reads recorded inventory and removes the alias before compute.
+A legacy `tofu-compute.tfstate` requires explicit migration before create.

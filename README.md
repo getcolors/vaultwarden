@@ -1,7 +1,6 @@
 # vaultwarden
 
-A tri-colour Package Skill — green (Clojure), red (TypeScript), and blue
-(Python) — that provisions a Basecamp ONCE server and deploys Vaultwarden with
+A package in Green, Red and Blue that provisions a Basecamp ONCE server and deploys Vaultwarden with
 continuous SQLite replication to Cloudflare R2. Green is canonical; the three
 implementations render byte-identical artifacts.
 
@@ -53,3 +52,11 @@ cd blue && uv run pytest
 ./scripts/parity.sh
 ./scripts/launcher.sh
 ```
+
+## Compute library
+
+All three colors call colors-compute directly. The library supports Azure,
+AWS, Google, DigitalOcean, Hetzner, Vultr, Yandex and OCI, and stores state in
+R2 or S3. Provider additions require only a library version bump. Set explicit
+SSH and HTTP source CIDRs. Compute no-infra is unsupported. Existing compute
+state requires migration before the new lifecycle can create resources.

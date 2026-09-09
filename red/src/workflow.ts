@@ -1,16 +1,12 @@
-// The graph, the port of io.github.getcolors.vaultwarden.workflow.
-//
-// Package-owned validation runs first; everything after it — the workflow
-// start behaviour, all four OpenTofu stages, both Ansible stages and the
-// optional GitHub credential publication — is ONCE's, reused unmodified.
-
-import { readPars } from "red/cli";
+import { dirname } from "node:path";
+import * as machine from "./machine.ts";
+import { readPars, parName } from "red/cli";
 import * as dryRun from "red/dry-run";
 import { preflight } from "red/lifecycle";
 import * as progress from "red/progress";
 import * as tofu from "red/tofu";
 import { adviceAdd, failed, workflow, type Opts, type WireDecl } from "red/workflow";
-import { startStep as onceStartStep, tools as onceTools } from "package-once-red";
+import { tools as onceTools } from "package-once-red";
 import { onceGithub } from "./once.ts";
 import * as tools from "./tools.ts";
 import * as validate from "./validate.ts";
@@ -20,30 +16,64 @@ export const defaults: Opts = {
   "provider-compute": "digitalocean",
   "provider-dns": "cloudflare",
   "provider-smtp": "resend",
-  "provider-backend": "local",
+  "provider-backend": "r2",
   workdir: ".colors",
 };
 
-export async function startStep(
-  original: Opts,
-  env: Record<string, string | undefined> = process.env,
-): Promise<Opts> {
-  const checked = await preflight(original, {
-    defaults,
-    overlay: readPars,
+async function stateOutput(opts: Opts, tool: string): Promise<Record<string, unknown> | undefined> {
+  try {
+    const result = await tofu.outputs(tools.toolDir(opts, tool), tools.backendCredentialEnv(opts));
+    return result.params as Record<string, unknown> | undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function adoptExistingState(opts: Opts): Promise<Opts> {
+  const loaded = await machine.load(opts);
+  if (loaded['red/exit']) return loaded;
+  const smtp = await stateOutput(opts,'tofu-smtp');
+  return {...loaded,...(smtp??{}),...(smtp?{'once/smtp-params':smtp}:{})};
+}
+
+// Attach the keys ansible-remote installs and the github step publishes.
+//
+// Generating them is a create-time side effect, so a build or a dry-run takes
+// fixed placeholders instead: a fresh key rendered into the artifact would make
+// the build nondeterministic and break byte parity between the colours.
+async function withDeployKeys(opts: Opts, real: boolean): Promise<Opts> {
+  if (real && opts["red/event"] === "create") {
+    const [keys, err] = await onceGithub.generateKeys(opts);
+    if (err) return { ...opts, "red/exit": 1, "red/err": err };
+    return {
+      ...opts,
+      "red/exit": 0,
+      "once/deploy-keys": keys,
+      ...(keys.length ? { "once/key-dir": dirname(String(keys[0]!.privateFile)) } : {}),
+    };
+  }
+  return { ...opts, "red/exit": 0, "once/deploy-keys": onceGithub.placeholderKeys(opts) };
+}
+
+export async function startStep(original: Opts, env: Record<string, string | undefined> = process.env): Promise<Opts> {
+  return preflight(original, {
+    defaults, overlay: readPars,
     validators: [
-      (_opts, environment) => validate.envErrors(environment),
-      (opts) => validate.stateErrors(opts),
-      (opts, _environment, { event, real }) =>
-        real && event === "create" ? validate.secretErrors(opts) : [],
+      (_o,e) => validate.envErrors(e),
+      (o) => [...validate.stateErrors(o), ...validate.integrationErrors(o)],
+      (o,_e,c) => c.real && ['create','delete'].includes(String(c.event)) ? validate.credentialErrors(o) : [],
+      (o,_e,c) => c.real && c.event === 'create' ? validate.secretErrors(o) : [],
+      (o,_e,c) => c.real && c.event === 'delete' && o['compute-prevent-destroy'] ? [`compute destruction is protected; set ${parName('compute-prevent-destroy')}=false to delete`] : [],
     ],
-  }, env);
-  if (failed(checked)) return checked;
-  return onceStartStep(tools.withOnceShape(checked), env);
+    afterValidate: async (opts,_env,ctx) => {
+      opts = tools.withOnceShape(opts);
+      return ctx.real && ctx.event === 'delete' ? adoptExistingState(opts) : withDeployKeys(opts,ctx.real);
+    },
+  },env);
 }
 
 export async function ansibleCleanupStep(opts: Opts): Promise<Opts> {
-  return onceTools.ansibleRemoteStep(await onceTools.ansibleLocalStep(opts));
+  return onceTools.ansibleRemoteStep(await tools.ansibleLocalStep(opts));
 }
 
 export function wireFn(step: string, runOpts: Opts): WireDecl | undefined {
@@ -58,18 +88,18 @@ export function wireFn(step: string, runOpts: Opts): WireDecl | undefined {
       "vaultwarden/smtp-post": [onceTools.tofuSmtpPostStep, "vaultwarden/dns"],
       "vaultwarden/dns": [onceTools.tofuDnsStep, "vaultwarden/smtp", "vaultwarden/compute"],
       "vaultwarden/smtp": [onceTools.tofuSmtpStep],
-      "vaultwarden/compute": [onceTools.tofuComputeStep],
+      "vaultwarden/compute": [machine.step],
     };
     return graph[step];
   }
   const graph: Record<string, WireDecl> = {
-    "vaultwarden/start": [startStep, "vaultwarden/compute", "vaultwarden/smtp"],
-    "vaultwarden/compute": [onceTools.tofuComputeStep, "vaultwarden/dns"],
+    "vaultwarden/start": [startStep, "vaultwarden/compute"],
+    "vaultwarden/compute": [machine.step, "vaultwarden/smtp"],
     "vaultwarden/smtp": [onceTools.tofuSmtpStep, "vaultwarden/dns"],
     "vaultwarden/dns": [onceTools.tofuDnsStep, "vaultwarden/smtp-post"],
     "vaultwarden/smtp-post": [onceTools.tofuSmtpPostStep,
       "vaultwarden/ansible-local", "vaultwarden/ansible-remote"],
-    "vaultwarden/ansible-local": [onceTools.ansibleLocalStep],
+    "vaultwarden/ansible-local": [tools.ansibleLocalStep],
     "vaultwarden/ansible-remote": github
       ? [onceTools.ansibleRemoteStep, "vaultwarden/github"]
       : [onceTools.ansibleRemoteStep],
@@ -94,8 +124,6 @@ export const sideEffectingSteps = [
 
 function create() {
   let wf = workflow({ start: "vaultwarden/start", wireFn });
-  wf = adviceAdd(wf, "vaultwarden/compute", "before", "vaultwarden.workflow/backend",
-    backendAdvice(tools.computeTool));
   wf = adviceAdd(wf, "vaultwarden/smtp", "before", "vaultwarden.workflow/backend",
     backendAdvice(tools.smtpTool));
   wf = adviceAdd(wf, "vaultwarden/dns", "before", "vaultwarden.workflow/backend",

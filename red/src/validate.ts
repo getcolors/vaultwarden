@@ -1,3 +1,6 @@
+import { credential_requirements } from "colors-compute-red";
+import { providers } from "package-once-red";
+import * as machine from "./machine.ts";
 // Desired-state validation, the port of io.github.getcolors.vaultwarden.validate.
 
 import { parName } from "red/cli";
@@ -76,4 +79,20 @@ export function secretErrors(opts: Opts): string[] {
   return ownSecrets
     .filter((key) => placeholder(opts[key]))
     .map((key) => `required credential is not set: ${parName(key)}`);
+}
+
+export function integrationErrors(opts: Opts): string[] {
+  const errors=machine.errors(opts);
+  for(const slot of ['provider-smtp','provider-dns']){
+    const entry=providers[slot]?.[String(opts[slot])];
+    if(!entry)errors.push('unsupported '+slot);
+    else for(const key of entry.required)if(placeholder(opts[key]))errors.push(':'+key+' is required');
+  }
+  return errors;
+}
+export function credentialErrors(opts: Opts): string[] {
+  const variables=new Set(credential_requirements(opts));
+  for(const slot of ['provider-smtp','provider-dns'])for(const key of providers[slot]?.[String(opts[slot])]?.secrets??[])variables.add(parName(key));
+  if(opts['vaultwarden-repo']!=null)variables.add('COLORS_PAR_GITHUB_TOKEN');
+  return [...variables].sort().filter(variable=>placeholder(opts[variable.slice(11).toLowerCase().replaceAll('_','-')])).map(variable=>'required credential is not set: '+variable);
 }

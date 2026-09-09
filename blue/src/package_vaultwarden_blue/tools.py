@@ -1,12 +1,8 @@
-"""The ONCE adaptation, the port of io.github.getcolors.vaultwarden.tools.
-
-This package renders no template of its own: the four OpenTofu stages and both
-Ansible stages are ONCE's, driven through ``package_once_blue.tools``. What
-lives here is the adapter that turns the flat Vaultwarden desired state into
-ONCE's application shape.
-"""
-
 from __future__ import annotations
+
+from pathlib import Path
+from blue.ansible import ansible_with_spec
+from blue.scaffold import PRESERVE_JINJA_DELIMITERS
 
 from package_once_blue import tools as once_tools
 
@@ -66,3 +62,18 @@ def with_once_shape(opts: dict) -> dict:
     if opts.get("vaultwarden-repo") is not None:
         app["github"] = opts.get("vaultwarden-repo")
     return {**opts, "once": {"applications": [app]}}
+
+
+async def ansible_local_step(opts):
+    directory = tool_dir(opts, 'ansible-local')
+    data = {**opts, **opts.get('once/compute-params', {})}
+    root = Path(__file__).parent / 'resources/tools/ansible-local'
+    specs = [{'template': {'name': 'tools/ansible-local/' + name, 'content': (root/name).read_text()},
+              'target': directory + '/' + name, 'data': data, 'opts': PRESERVE_JINJA_DELIMITERS}
+             for name in ['ansible.cfg', 'inventory.ini', 'main.yml']]
+    return await ansible_with_spec(opts, specs, dir=directory, inventory='inventory.ini',
+        playbooks={'create': 'main.yml', 'delete': 'main.yml'}, extra_vars={
+            'host_alias': data.get('profile'),
+            'ssh_hosts': [{'name': data.get('profile'), 'ip': data.get('ip'), 'user': data.get('user'),
+                           'identity_file': data.get('ssh-private-key-path')}],
+            'block_state': 'absent' if opts.get('blue/event') == 'delete' else 'present'})

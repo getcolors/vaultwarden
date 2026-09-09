@@ -4,7 +4,7 @@ io.github.getcolors.vaultwarden.utils."""
 from __future__ import annotations
 
 # Bump on any change a launcher pinned to an older commit could not survive.
-CONTRACT = 1
+CONTRACT = 2
 
 
 def registrable_domain(host: object) -> str:

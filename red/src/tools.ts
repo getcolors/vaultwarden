@@ -1,10 +1,8 @@
-// The ONCE adaptation, the port of io.github.getcolors.vaultwarden.tools.
-//
-// This package renders no template of its own: the four OpenTofu stages and
-// both Ansible stages are ONCE's, driven through the `tools` namespace ONCE
-// exports. What lives here is the adapter that turns the flat Vaultwarden
-// desired state into ONCE's application shape.
-
+import { ansibleWithSpec } from "red/ansible";
+import { PRESERVE_JINJA_DELIMITERS } from "red/scaffold";
+import cfg from "../resources/tools/ansible-local/ansible.cfg" with { type: "text" };
+import inventory from "../resources/tools/ansible-local/inventory.ini" with { type: "text" };
+import main from "../resources/tools/ansible-local/main.yml" with { type: "text" };
 import { tools as onceTools } from "package-once-red";
 import type { Opts } from "red/workflow";
 import { parLookup } from "./utils.ts";
@@ -51,4 +49,17 @@ export function withOnceShape(opts: Opts): Opts {
   };
   if (opts["vaultwarden-repo"] != null) app.github = opts["vaultwarden-repo"];
   return { ...opts, once: { applications: [app] } };
+}
+
+
+export function ansibleLocalStep(opts: Opts): Promise<Opts> {
+  const dir = toolDir(opts, 'ansible-local');
+  const data = {...opts, ...(opts['once/compute-params'] as Opts ?? {})};
+  const specs = Object.entries({'ansible.cfg':cfg,'inventory.ini':inventory,'main.yml':main}).map(([name,content]) => ({
+    template:{name:'tools/ansible-local/'+name,content},target:dir+'/'+name,data,opts:PRESERVE_JINJA_DELIMITERS,
+  }));
+  return ansibleWithSpec(opts, {dir,inventory:'inventory.ini',playbooks:{create:'main.yml',delete:'main.yml'},extraVars:{
+    host_alias:data.profile,ssh_hosts:[{name:data.profile,ip:data.ip,user:data.user,identity_file:data['ssh-private-key-path']}],
+    block_state:opts['red/event']==='delete'?'absent':'present',
+  }},specs);
 }

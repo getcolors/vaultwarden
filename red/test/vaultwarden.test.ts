@@ -130,7 +130,7 @@ describe("workflow", () => {
   });
 
   test("official image needs no github credential", async () => {
-    const env = { ...packageSecrets, COLORS_PAR_NO_INFRA_SMTP_PASSWORD: "x" };
+    const env = { ...packageSecrets, COLORS_PAR_NO_INFRA_SMTP_PASSWORD: "x", COLORS_PAR_DO_TOKEN: "x" };
     const opts = without(fixture({ "red/event": "create" }), "vaultwarden-repo");
     const result = await workflow.startStep(opts, env);
     expect(result["red/exit"]).toBe(0);
@@ -145,7 +145,7 @@ describe("workflow", () => {
 
   test("graph reuses once stages and reverses on delete", () => {
     expect(workflow.wireFn("vaultwarden/start", { "red/event": "create" })!.slice(1))
-      .toEqual(["vaultwarden/compute", "vaultwarden/smtp"]);
+      .toEqual(["vaultwarden/compute"]);
     expect(workflow.wireFn("vaultwarden/start", fixture({ "red/event": "delete" }))!.slice(1))
       .toEqual(["vaultwarden/github"]);
     expect(workflow.wireFn("vaultwarden/dns", { "red/event": "delete" })!.slice(1))
@@ -159,4 +159,12 @@ describe("workflow", () => {
     expect(workflow.wireFn("vaultwarden/start", { ...opts, "red/event": "delete" })!.slice(1))
       .toEqual(["vaultwarden/ansible-cleanup"]);
   });
+});
+
+import * as machine from '../src/machine.ts';
+test('compute owns its lifecycle and refuses removed modes or empty ingress', () => {
+  expect(workflow.wireFn('vaultwarden/compute', {'red/event':'create'})).toEqual([machine.step,'vaultwarden/smtp']);
+  expect(machine.requirements(fixture()).legacy_state_keys).toEqual(['vaultwarden-fixture/tofu-compute.tfstate']);
+  expect(machine.errors(fixture({'provider-compute':'no-infra'})).length).toBeGreaterThan(0);
+  expect(machine.errors(fixture({'compute-http-sources':[]})).length).toBeGreaterThan(0);
 });

@@ -12,6 +12,8 @@ import type { Opts } from "red/workflow";
 
 export interface OnceGithub {
   githubStep(opts: Opts): Promise<Opts>;
+  generateKeys(opts: Opts): Promise<[Array<{privateFile: string}>, string | undefined]>;
+  placeholderKeys(opts: Opts): unknown[];
 }
 
 const onceEntry = Bun.resolveSync("package-once-red", import.meta.dir);
