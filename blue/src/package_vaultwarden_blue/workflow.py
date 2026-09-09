@@ -43,7 +43,7 @@ async def _state_output(opts: dict, tool: str) -> dict | None:
 
 async def _adopt_existing_state(opts: dict) -> dict:
     loaded = await machine.load(opts)
-    if loaded.get('blue/exit'):
+    if loaded.get('blue/exit') or loaded.get('colors-compute/already-destroyed'):
         return loaded
     smtp = await _state_output(opts, 'tofu-smtp')
     return {**loaded, **(smtp or {}), **({'once/smtp-params': smtp} if smtp else {})}
@@ -79,8 +79,8 @@ def wire_fn(step: str, run_opts: dict):
             "vaultwarden/github": (once_github.github_step, "vaultwarden/ansible-cleanup"),
             "vaultwarden/ansible-cleanup": (ansible_cleanup_step, "vaultwarden/smtp-post"),
             "vaultwarden/smtp-post": (once_tools.tofu_smtp_post_step, "vaultwarden/dns"),
-            "vaultwarden/dns": (once_tools.tofu_dns_step, "vaultwarden/smtp", "vaultwarden/compute"),
-            "vaultwarden/smtp": (once_tools.tofu_smtp_step,),
+            "vaultwarden/dns": (once_tools.tofu_dns_step, "vaultwarden/smtp"),
+            "vaultwarden/smtp": (once_tools.tofu_smtp_step, "vaultwarden/compute"),
             "vaultwarden/compute": (machine.step,),
         }.get(step)
     return {
@@ -112,7 +112,7 @@ side_effecting_steps = [
 
 
 def create_workflow():
-    wf = workflow(start="vaultwarden/start", wire_fn=wire_fn)
+    wf = workflow(start="vaultwarden/start", wire_fn=wire_fn, next_fn=lambda step, successors, opts: [] if failed(opts) or (step == "vaultwarden/start" and opts.get("blue/event") == "delete" and opts.get("colors-compute/already-destroyed")) else [(successor, opts) for successor in successors or []])
     for step, tool in [("vaultwarden/smtp", tools.SMTP_TOOL),
                        ("vaultwarden/dns", tools.DNS_TOOL),
                        ("vaultwarden/smtp-post", tools.SMTP_POST_TOOL)]:

@@ -40,7 +40,7 @@
   (is (= [:vaultwarden/github]
          (vec (rest (workflow/wire-fn :vaultwarden/start
                                       (assoc (fixture) :green/event :delete))))))
-  (is (= [:vaultwarden/smtp :vaultwarden/compute]
+  (is (= [:vaultwarden/smtp]
          (vec (rest (workflow/wire-fn :vaultwarden/dns {:green/event :delete}))))))
 
 (deftest official-image-omits-github-from-the-graph
@@ -82,3 +82,29 @@
   (doseq [event [:create :build]]
     (is (= [:vaultwarden/ansible-local] (vec (rest (workflow/wire-fn :vaultwarden/smtp-post {:green/event event})))))
     (is (= [:vaultwarden/ansible-remote] (vec (rest (workflow/wire-fn :vaultwarden/ansible-local {:green/event event})))))))
+
+(deftest retired-inventory-only-allows-delete
+  (require '[io.github.getcolors.compute-inspection :as inspection])
+  (doseq [status ["destroyed" "absent" "error"] event [:create :delete]]
+    (with-redefs-fn {(resolve 'inspection/read-deployment) (fn [& _] {:status status})}
+      (fn [] (let [result (machine/load-inventory {:green/event event} {})
+                   allowed (and (= status "destroyed") (= event :delete))]
+               (is (= (if allowed 0 1) (:green/exit result)))
+               (is (= allowed (boolean (:colors-compute/already-destroyed result)))))))))
+
+(deftest native-repeat-delete-and-cleanup-order
+  (require '[green.workflow :as engine])
+  (doseq [retired [true false] failure [true false]]
+    (let [seen (atom [])
+          graph ((resolve 'engine/workflow)
+                 {:start :vaultwarden/start :next-fn (:green.workflow/next-fn workflow/workflow)
+                  :wire-fn (fn [step opts]
+                             (let [declared (workflow/wire-fn step opts)]
+                               (into [(fn [current] (swap! seen conj step)
+                                        (assoc current :colors-compute/already-destroyed retired :green/exit (if failure 1 0)))]
+                                     (rest declared))))})
+          result ((resolve 'engine/run) graph {:green/event :delete})]
+      (if (or retired failure)
+        (is (= [:vaultwarden/start] @seen))
+        (is (= [:vaultwarden/dns :vaultwarden/smtp :vaultwarden/compute] (take-last 3 @seen))))
+      (is (= (if failure 1 0) (:green/exit result))))))

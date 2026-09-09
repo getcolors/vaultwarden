@@ -36,7 +36,7 @@
   earlier stages produced (compute ip, smtp domain id and records)."
   [opts]
   (let [loaded (machine/load-inventory opts)]
-    (if (wf/failed? loaded) loaded
+    (if (or (wf/failed? loaded) (:colors-compute/already-destroyed loaded)) loaded
         (let [smtp (state-output opts "tofu-smtp")]
           (cond-> loaded smtp (-> (merge smtp) (assoc :once/smtp-params smtp)))))))
 
@@ -89,8 +89,8 @@
       :vaultwarden/github [once-github/github-step :vaultwarden/ansible-cleanup]
       :vaultwarden/ansible-cleanup [ansible-cleanup-step :vaultwarden/smtp-post]
       :vaultwarden/smtp-post [once-tools/tofu-smtp-post-step :vaultwarden/dns]
-      :vaultwarden/dns [once-tools/tofu-dns-step :vaultwarden/smtp :vaultwarden/compute]
-      :vaultwarden/smtp [once-tools/tofu-smtp-step]
+      :vaultwarden/dns [once-tools/tofu-dns-step :vaultwarden/smtp]
+      :vaultwarden/smtp [once-tools/tofu-smtp-step :vaultwarden/compute]
         :vaultwarden/compute [machine/step])
       (case step
         :vaultwarden/start [start-step :vaultwarden/compute]
@@ -117,7 +117,7 @@
    :vaultwarden/github])
 
 (def workflow
-  (-> (wf/workflow {:start :vaultwarden/start :wire-fn wire-fn})
+  (-> (wf/workflow {:start :vaultwarden/start :wire-fn wire-fn :next-fn (fn [step successors opts] (if (or (wf/failed? opts) (and (= step :vaultwarden/start) (= :delete (:green/event opts)) (:colors-compute/already-destroyed opts))) [] (mapv #(vector % opts) successors)))})
       (wf/advice-add :vaultwarden/smtp :before ::backend (backend-advice tools/smtp-tool))
       (wf/advice-add :vaultwarden/dns :before ::backend (backend-advice tools/dns-tool))
       (wf/advice-add :vaultwarden/smtp-post :before ::backend (backend-advice tools/smtp-post-tool))

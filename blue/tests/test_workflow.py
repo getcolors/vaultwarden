@@ -43,7 +43,7 @@ def test_graph_reuses_once_stages_and_reverses_on_delete():
     assert list(workflow.wire_fn("vaultwarden/start", fixture({"blue/event": "delete"}))[1:]) == \
         ["vaultwarden/github"]
     assert list(workflow.wire_fn("vaultwarden/dns", {"blue/event": "delete"})[1:]) == \
-        ["vaultwarden/smtp", "vaultwarden/compute"]
+        ["vaultwarden/smtp"]
 
 
 def test_official_image_omits_github_from_the_graph():

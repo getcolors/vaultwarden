@@ -149,7 +149,7 @@ describe("workflow", () => {
     expect(workflow.wireFn("vaultwarden/start", fixture({ "red/event": "delete" }))!.slice(1))
       .toEqual(["vaultwarden/github"]);
     expect(workflow.wireFn("vaultwarden/dns", { "red/event": "delete" })!.slice(1))
-      .toEqual(["vaultwarden/smtp", "vaultwarden/compute"]);
+      .toEqual(["vaultwarden/smtp"]);
   });
 
   test("official image omits github from the graph", () => {

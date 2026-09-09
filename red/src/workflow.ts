@@ -31,7 +31,7 @@ async function stateOutput(opts: Opts, tool: string): Promise<Record<string, unk
 
 async function adoptExistingState(opts: Opts): Promise<Opts> {
   const loaded = await machine.load(opts);
-  if (loaded['red/exit']) return loaded;
+  if (loaded['red/exit']||loaded['colors-compute/already-destroyed']) return loaded;
   const smtp = await stateOutput(opts,'tofu-smtp');
   return {...loaded,...(smtp??{}),...(smtp?{'once/smtp-params':smtp}:{})};
 }
@@ -76,6 +76,7 @@ export async function ansibleCleanupStep(opts: Opts): Promise<Opts> {
   return onceTools.ansibleRemoteStep(await tools.ansibleLocalStep(opts));
 }
 
+export function nextFn(step:string, successors:string[]|null, opts:Opts):[string,Opts][] {return failed(opts)||(step==='vaultwarden/start'&&opts['red/event']==='delete'&&opts['colors-compute/already-destroyed'])?[]:(successors??[]).map(s=>[s,opts]);}
 export function wireFn(step: string, runOpts: Opts): WireDecl | undefined {
   const github = runOpts["vaultwarden-repo"] != null;
   if (runOpts["red/event"] === "delete") {
@@ -86,8 +87,8 @@ export function wireFn(step: string, runOpts: Opts): WireDecl | undefined {
       "vaultwarden/github": [onceGithub.githubStep, "vaultwarden/ansible-cleanup"],
       "vaultwarden/ansible-cleanup": [ansibleCleanupStep, "vaultwarden/smtp-post"],
       "vaultwarden/smtp-post": [onceTools.tofuSmtpPostStep, "vaultwarden/dns"],
-      "vaultwarden/dns": [onceTools.tofuDnsStep, "vaultwarden/smtp", "vaultwarden/compute"],
-      "vaultwarden/smtp": [onceTools.tofuSmtpStep],
+      "vaultwarden/dns": [onceTools.tofuDnsStep, "vaultwarden/smtp"],
+      "vaultwarden/smtp": [onceTools.tofuSmtpStep, "vaultwarden/compute"],
       "vaultwarden/compute": [machine.step],
     };
     return graph[step];
@@ -123,7 +124,7 @@ export const sideEffectingSteps = [
 ];
 
 function create() {
-  let wf = workflow({ start: "vaultwarden/start", wireFn });
+  let wf = workflow({ start: "vaultwarden/start", wireFn, nextFn });
   wf = adviceAdd(wf, "vaultwarden/smtp", "before", "vaultwarden.workflow/backend",
     backendAdvice(tools.smtpTool));
   wf = adviceAdd(wf, "vaultwarden/dns", "before", "vaultwarden.workflow/backend",
