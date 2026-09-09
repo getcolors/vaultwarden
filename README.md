@@ -60,3 +60,5 @@ AWS, Google, DigitalOcean, Hetzner, Vultr, Yandex and OCI, and stores state in
 R2 or S3. Provider additions require only a library version bump. Set explicit
 SSH and HTTP source CIDRs. Compute no-infra is unsupported. Existing compute
 state requires migration before the new lifecycle can create resources.
+
+Create and build serialize the package-owned SSH alias stage before remote Ansible. A failed local ownership check stops application convergence; GitHub publication remains after remote convergence.

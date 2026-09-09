@@ -77,3 +77,8 @@
                   (is (= "absent" (get-in config [:extra-vars :block_state]))) opts)]
     (tools/ansible-local-step (assoc (fixture) :green/event :delete :once/compute-params
                                     {:name "cloud-label" :ip "203.0.113.8" :user "ubuntu" :ssh-private-key-path "/tmp/external"}))))
+
+(deftest ssh-alias-precedes-remote-convergence
+  (doseq [event [:create :build]]
+    (is (= [:vaultwarden/ansible-local] (vec (rest (workflow/wire-fn :vaultwarden/smtp-post {:green/event event})))))
+    (is (= [:vaultwarden/ansible-remote] (vec (rest (workflow/wire-fn :vaultwarden/ansible-local {:green/event event})))))))

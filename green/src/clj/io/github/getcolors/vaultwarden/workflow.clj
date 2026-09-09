@@ -98,8 +98,8 @@
         :vaultwarden/smtp [once-tools/tofu-smtp-step :vaultwarden/dns]
         :vaultwarden/dns [once-tools/tofu-dns-step :vaultwarden/smtp-post]
         :vaultwarden/smtp-post [once-tools/tofu-smtp-post-step
-                                :vaultwarden/ansible-local :vaultwarden/ansible-remote]
-        :vaultwarden/ansible-local [tools/ansible-local-step]
+                                :vaultwarden/ansible-local]
+        :vaultwarden/ansible-local [tools/ansible-local-step :vaultwarden/ansible-remote]
         :vaultwarden/ansible-remote (if github?
                                       [once-tools/ansible-remote-step :vaultwarden/github]
                                       [once-tools/ansible-remote-step])

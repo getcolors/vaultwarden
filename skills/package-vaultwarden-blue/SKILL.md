@@ -61,3 +61,5 @@ with the recorded address and login. External mode adds no IdentityFile or
 IdentitiesOnly directive. An explicit `ssh-private-key-path` still reaches
 Ansible. Delete reads recorded inventory and removes the alias before compute.
 A legacy `tofu-compute.tfstate` requires explicit migration before create.
+
+Create and build serialize the package-owned SSH alias stage before remote Ansible. A failed local ownership check stops application convergence; GitHub publication remains after remote convergence.

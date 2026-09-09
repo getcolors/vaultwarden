@@ -98,8 +98,8 @@ export function wireFn(step: string, runOpts: Opts): WireDecl | undefined {
     "vaultwarden/smtp": [onceTools.tofuSmtpStep, "vaultwarden/dns"],
     "vaultwarden/dns": [onceTools.tofuDnsStep, "vaultwarden/smtp-post"],
     "vaultwarden/smtp-post": [onceTools.tofuSmtpPostStep,
-      "vaultwarden/ansible-local", "vaultwarden/ansible-remote"],
-    "vaultwarden/ansible-local": [tools.ansibleLocalStep],
+      "vaultwarden/ansible-local"],
+    "vaultwarden/ansible-local": [tools.ansibleLocalStep, "vaultwarden/ansible-remote"],
     "vaultwarden/ansible-remote": github
       ? [onceTools.ansibleRemoteStep, "vaultwarden/github"]
       : [onceTools.ansibleRemoteStep],

@@ -78,3 +78,5 @@ paths already encode the repository. Never add one tag without the other.
 ## Git
 
 Work on the current branch. Do not commit or push unless explicitly authorized.
+
+Create and build serialize the package-owned SSH alias stage before remote Ansible. A failed local ownership check stops application convergence; GitHub publication remains after remote convergence.

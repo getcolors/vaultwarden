@@ -89,8 +89,8 @@ def wire_fn(step: str, run_opts: dict):
         "vaultwarden/smtp": (once_tools.tofu_smtp_step, "vaultwarden/dns"),
         "vaultwarden/dns": (once_tools.tofu_dns_step, "vaultwarden/smtp-post"),
         "vaultwarden/smtp-post": (once_tools.tofu_smtp_post_step,
-                                  "vaultwarden/ansible-local", "vaultwarden/ansible-remote"),
-        "vaultwarden/ansible-local": (tools.ansible_local_step,),
+                                  "vaultwarden/ansible-local"),
+        "vaultwarden/ansible-local": (tools.ansible_local_step, "vaultwarden/ansible-remote"),
         "vaultwarden/ansible-remote": ((once_tools.ansible_remote_step, "vaultwarden/github")
                                        if github else (once_tools.ansible_remote_step,)),
         "vaultwarden/github": (once_github.github_step,),
