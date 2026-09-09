@@ -53,7 +53,7 @@
 ;; cannot resolve its own library says so rather than inventing a SHA or
 ;; silently falling back to whatever is lying around. `bb pin` refuses to stamp
 ;; a dirty or unpushed HEAD for the same reason.
-(def ^:private vaultwarden-sha "60235ffe801dccf0aec94a78f421b600649da272")
+(def ^:private vaultwarden-sha "d63db776603270b3956ce26c8c0a85697dfde35b")
 
 (def ^:private vaultwarden-git-url "https://github.com/getcolors/vaultwarden.git")
 (def ^:private once-git-url "https://github.com/getcolors/once.git")
