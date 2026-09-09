@@ -39,7 +39,7 @@ import { homedir } from "node:os";
 // directory, which would halt Bun's upward resolution of `package-vaultwarden-red`
 // and break the development symlink at red/red.
 const PINS = {
-  "package-vaultwarden-red": "github:getcolors/vaultwarden#e6ec7179b65fcf50d70fe6e676d8bd046724e1a9",
+  "package-vaultwarden-red": "github:getcolors/vaultwarden#60235ffe801dccf0aec94a78f421b600649da272",
 };
 
 // PINS is the only source of versions, as green's inline SHA and blue's PEP
