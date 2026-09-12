@@ -40,6 +40,11 @@ import { homedir } from "node:os";
 // and break the development symlink at red/red.
 const PINS = {
   "package-vaultwarden-red": "github:getcolors/vaultwarden#49f9d4ca265a80065534567bf4bdd7b1d9d886fc",
+  // The Red SDK is a peer of colors-compute-red, not a dependency: a cold
+  // cache satisfies a peer only from this manifest's own dependencies, so the
+  // launcher pins it explicitly, at the commit red/package.json pins.
+  // scripts/launcher.sh checks they agree.
+  "red": "github:getcolors/red#db9bfe61282e2093f4098bf5a6ee0cd10added6e",
 };
 
 // PINS is the only source of versions, as green's inline SHA and blue's PEP
