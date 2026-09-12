@@ -5,13 +5,22 @@
     "": {
       "name": "package-vaultwarden-red",
       "dependencies": {
-        "colors-compute-red": "github:getcolors/colors-compute#422c3f39d22be93efa703da09eb192490942ede3",
+        "colors-compute-red": "github:getcolors/colors-compute#ae28ea74962bb1897fa6365c143c1d43ac1fe095",
         "package-once-red": "github:getcolors/once#a1fe1be7a427dd2e406ff7befd1c43a53e7c3618",
       },
+      "devDependencies": {
+        "red": "github:getcolors/red#db9bfe61282e2093f4098bf5a6ee0cd10added6e",
+      },
+      "peerDependencies": {
+        "red": "*",
+      },
+      "optionalPeers": [
+        "red",
+      ],
     },
   },
   "packages": {
-    "colors-compute-red": ["colors-compute-red@github:getcolors/colors-compute#422c3f3", { "dependencies": { "red": "github:getcolors/red#db9bfe61282e2093f4098bf5a6ee0cd10added6e" } }, "getcolors-colors-compute-422c3f3", "sha512-osN3+I3OoN3hA74hSBcRcCiKrLKMfnEjIkhGS2tVCFqVUG2iRMy/tTXr/hDjphcz3idCZD3nRr0k5guuxtR4wQ=="],
+    "colors-compute-red": ["colors-compute-red@github:getcolors/colors-compute#ae28ea7", { "peerDependencies": { "red": "*" } }, "getcolors-colors-compute-ae28ea7", "sha512-AKgS7dS07pGgS2O7OhJfAu6MS0/xxJTx/WIxyfGORXbySJEI10ySThyqPYWWJu9SRcgzdFCw0DpkIVm3mWlInQ=="],
 
     "package-once-red": ["package-once-red@github:getcolors/once#a1fe1be", { "peerDependencies": { "colors-compute-red": "*", "red": "*" }, "optionalPeers": ["colors-compute-red", "red"] }, "getcolors-once-a1fe1be", "sha512-QDx9xiW8CEFNmzSRf9YOpm9CtEVqUkE83z04dHJ8QRxNghlzhCJ8A23eYxJa79MgcPo2RKDua7htaYa/puqLdg=="],
 
