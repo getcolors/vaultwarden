@@ -39,7 +39,7 @@ import { homedir } from "node:os";
 // directory, which would halt Bun's upward resolution of `package-vaultwarden-red`
 // and break the development symlink at red/red.
 const PINS = {
-  "package-vaultwarden-red": "github:getcolors/vaultwarden#49f9d4ca265a80065534567bf4bdd7b1d9d886fc",
+  "package-vaultwarden-red": "github:getcolors/vaultwarden#1a438d0c471f9558085561ef7f8d11e9445d2310",
   // The Red SDK is a peer of colors-compute-red, not a dependency: a cold
   // cache satisfies a peer only from this manifest's own dependencies, so the
   // launcher pins it explicitly, at the commit red/package.json pins.

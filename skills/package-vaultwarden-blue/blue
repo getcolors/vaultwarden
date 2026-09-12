@@ -4,7 +4,7 @@
 # dependencies = ["package-vaultwarden-blue"]
 #
 # [tool.uv.sources]
-# package-vaultwarden-blue = { git = "https://github.com/getcolors/vaultwarden.git", rev = "49f9d4ca265a80065534567bf4bdd7b1d9d886fc", subdirectory = "blue" }
+# package-vaultwarden-blue = { git = "https://github.com/getcolors/vaultwarden.git", rev = "1a438d0c471f9558085561ef7f8d11e9445d2310", subdirectory = "blue" }
 # ///
 #
 # Managed by `bb pin` — do not edit by hand, and never invent a SHA.
